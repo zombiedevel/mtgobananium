@@ -18,7 +18,7 @@ cd ../../
 git clone https://github.com/zombiedevel/mtgobananium.git
 cd mtgobananium
 go mod download
-go build
+go build -o mtgobananium cmd/main.go
 
 ```
 
