@@ -25,11 +25,12 @@ func StartHandler(msg tdlib.TdMessage, client *tdlib.Client, log *zap.Logger) {
 	)
 	var buttons [][]tdlib.KeyboardButton
 	buttons = append(buttons, []tdlib.KeyboardButton{
+		*tdlib.NewKeyboardButton("Пройти проверку", tdlib.NewKeyboardButtonTypeText()),
 		*tdlib.NewKeyboardButton("О боте", tdlib.NewKeyboardButtonTypeText()),
 	},
 	)
 	var format *tdlib.FormattedText
-	format = tdlib.NewFormattedText(fmt.Sprintf("Hello, %s", user.FirstName), nil)
+	format = tdlib.NewFormattedText(fmt.Sprintf("Привет, %s", user.FirstName), nil)
 	text := tdlib.NewInputMessageText(format, false, false)
 	client.SendMessage(upd.Message.ChatID, 0,
 		0,
@@ -43,12 +44,8 @@ func RoHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	uTime := t.Local().Add(time.Minute * 15).Unix()
 	userId := msg.Sender.(*tdlib.MessageSenderUser).UserID
 	user, _ := client.GetUser(userId)
-	if _, err := client.SetChatMemberStatus(
-		msg.ChatID,
-		userId,
-		tdlib.NewChatMemberStatusRestricted(true, int32(uTime), &tdlib.ChatPermissions{CanSendMessages: false})); err != nil {
-		log.Error("Error NewChatMemberStatusRestricted", zap.Error(err))
-		return
+	if err := restrict(msg.Sender.(*tdlib.MessageSenderUser), msg.ChatID, client, uTime); err != nil {
+		log.Error("Error restrict user", zap.Error(err))
 	}
 	tg.SendTextMessage(fmt.Sprintf("Пользователь %s помещён в карантин.", user.FirstName), msg.ChatID, client, nil)
 	return

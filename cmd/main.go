@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/zombiedevel/go-tdlib"
@@ -45,9 +46,24 @@ func main() {
 		eventFilter := func(msg *tdlib.TdMessage) bool {
 			return true
 		}
+
 		receiver := client.AddEventReceiver(&tdlib.UpdateNewMessage{}, eventFilter, 1000)
 		for newMsg := range receiver.Chan {
+
 			update := (newMsg).(*tdlib.UpdateNewMessage)
+
+            // Handle user join to group
+			if update.Message.Content.GetMessageContentEnum() == tdlib.MessageChatAddMembersType {
+                //member, err := client.GetChatMember(update.Message.ChatID, update.Message.Sender.(*tdlib.MessageSenderUser).UserID)
+                //if err != nil {
+                //	logger.Error("Error GetChatMember", zap.Error(err))
+                //	return
+				//}
+				//handlers.Protect(member, client, update.Message.ChatID, logger)
+				//TODO: Make in process. Do not uncomment
+
+			}
+
 			if update.Message.ReplyToMessageID > 0 {
 				msgData, err := client.GetMessage(update.Message.ChatID, update.Message.ReplyToMessageID)
 				if err != nil {
@@ -76,6 +92,8 @@ func main() {
 			case "/start":
 				handlers.StartHandler(newMsg, client, logger)
 			}
+
+
 		}
 	}()
 	for {
@@ -98,9 +116,9 @@ func main() {
 
 	// rawUpdates gets all updates comming from tdlib
 	rawUpdates := client.GetRawUpdatesChannel(100)
-	for range rawUpdates {
+	for upd := range rawUpdates {
 		// Show all updates
-		//fmt.Println(upd.Data)
+		fmt.Printf("%+v\n--------\n",upd.Data)
 		//message := update.Data
 	}
 }
