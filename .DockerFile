@@ -7,6 +7,11 @@ COPY --from=wcsiu/tdlib:1.7-alpine /usr/lib/libcrypto.a /usr/local/lib/libcrypto
 COPY --from=wcsiu/tdlib:1.7-alpine /lib/libz.a /usr/local/lib/libz.a
 RUN apk add build-base
 
+# Redis
+#RUN         apt-get update && apt-get install -y redis-server
+#EXPOSE      6379
+#CMD         ["/usr/bin/redis-server"]
+
 WORKDIR /app
 COPY .env /
 COPY . .

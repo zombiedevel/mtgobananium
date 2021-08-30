@@ -1,0 +1,8 @@
+[ 1][t 4][1630346482.183118104][FileManager.hpp:176][#1][!MessagesManager]	Can't resend local file [full local location of videos] at "/Users/valery/go/src/github.com/zombiedevel/mtgobabanium/tmp/video.mp4" of size 136981 owned by chat -1001436511115
+[ 1][t 4][1630346544.668955087][FileManager.hpp:176][#1][!UpdatesManager]	Can't resend local file [full local location of videos] at "/Users/valery/go/src/github.com/zombiedevel/mtgobabanium/tmp/video.mp4" of size 136981 owned by chat -1001436511115
+[ 1][t 4][1630346551.983894109][FileManager.hpp:176][#1][!MessagesManager]	Can't resend local file [full local location of videos] at "/Users/valery/go/src/github.com/zombiedevel/mtgobabanium/tmp/video.mp4" of size 565374 owned by chat -1001436511115
+[ 1][t 4][1630346584.116991043][FileManager.hpp:176][#1][!UpdatesManager]	Can't resend local file [full local location of videos] at "/Users/valery/go/src/github.com/zombiedevel/mtgobabanium/tmp/video.mp4" of size 565374 owned by chat -1001436511115
+[ 1][t 4][1630346921.022886037][FileManager.hpp:176][#1][!Td]	Can't resend local file [full local location of videos] at "/Users/valery/go/src/github.com/zombiedevel/mtgobabanium/tmp/video.mp4" of size 224166 owned by chat -1001436511115
+[ 1][t 4][1630346921.027712106][MessageContent.cpp:1430][#1][!MessagesManager]	Load a message with an invalid content of type Video
+[ 1][t 4][1630346921.427773952][FileManager.hpp:176][#1][!Td]	Can't resend local file [full local location of videos] at "/Users/valery/go/src/github.com/zombiedevel/mtgobabanium/tmp/video.mp4" of size 548932 owned by chat -1001436511115
+[ 1][t 4][1630346921.428214073][MessageContent.cpp:1430][#1][!MessagesManager]	Load a message with an invalid content of type Video

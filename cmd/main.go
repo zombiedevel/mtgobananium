@@ -54,13 +54,12 @@ func main() {
 
             // Handle user join to group
 			if update.Message.Content.GetMessageContentEnum() == tdlib.MessageChatAddMembersType {
-                //member, err := client.GetChatMember(update.Message.ChatID, update.Message.Sender.(*tdlib.MessageSenderUser).UserID)
-                //if err != nil {
-                //	logger.Error("Error GetChatMember", zap.Error(err))
-                //	return
-				//}
-				//handlers.Protect(member, client, update.Message.ChatID, logger)
-				//TODO: Make in process. Do not uncomment
+                member, err := client.GetChatMember(update.Message.ChatID, update.Message.Sender.(*tdlib.MessageSenderUser).UserID)
+                if err != nil {
+                	logger.Error("Error GetChatMember", zap.Error(err))
+                	return
+				}
+				handlers.Protect(member, client, update.Message.ChatID, logger)
 
 			}
 
@@ -75,27 +74,30 @@ func main() {
 				}
 				cmd := tg.TryExtractText(update.Message)
 				switch cmd {
-				case "!src": handlers.SrcHandler(msgData, client, logger)
+				case "!src": go handlers.SrcHandler(msgData, client, logger)
 				case "!ban":
 					if member.Status.GetChatMemberStatusEnum() == tdlib.ChatMemberStatusAdministratorType {
-						// TODO: Make ban handler
+						go handlers.BanHandler(msgData, client, logger)
 					}
 				case "!ro":
 					if member.Status.GetChatMemberStatusEnum() == tdlib.ChatMemberStatusAdministratorType {
-						handlers.RoHandler(msgData, client, logger)
+						go handlers.RoHandler(msgData, client, logger)
 					}
-				case "!report": handlers.ReportHandler(msgData, client, logger)
-				case "О боте": // TODO: Make about handler
+				case "!report": go handlers.ReportHandler(msgData, client, logger)
+
 				}
 			}
 			switch tg.TryExtractText(update.Message) {
 			case "/start":
-				handlers.StartHandler(newMsg, client, logger)
+				go handlers.StartHandler(newMsg, client, logger)
+			case "!tv": go handlers.TvHandler(update.Message, client, logger)
+			case "О боте": // TODO: Make about handler
 			}
 
 
 		}
 	}()
+	go callbackQuery(client, logger)
 	for {
 		currentState, _ := client.Authorize()
 		if currentState.GetAuthorizationStateEnum() == tdlib.AuthorizationStateWaitPhoneNumberType {
@@ -120,5 +122,30 @@ func main() {
 		// Show all updates
 		fmt.Printf("%+v\n--------\n",upd.Data)
 		//message := update.Data
+	}
+}
+
+func callbackQuery(client *tdlib.Client, log *zap.Logger) {
+	eventFilter := func(msg *tdlib.TdMessage) bool {
+		return true
+	}
+	receiver := client.AddEventReceiver(&tdlib.UpdateNewCallbackQuery{}, eventFilter, 1000)
+	for newMsg := range receiver.Chan {
+		go func(newMsg tdlib.TdMessage) {
+			updateMsg := (newMsg).(*tdlib.UpdateNewCallbackQuery)
+			chatID := updateMsg.ChatID
+			msgID := updateMsg.MessageID
+			data := string(updateMsg.Payload.(*tdlib.CallbackQueryPayloadData).Data)
+
+			msg, err := client.GetMessage(chatID, msgID)
+			if err != nil {
+				log.Error("Error GetMessage", zap.Error(err))
+				return
+			}
+			switch {
+			case data == "next_movie":
+				handlers.NextMovieCallback(msg, client, log)
+			}
+		}(newMsg)
 	}
 }

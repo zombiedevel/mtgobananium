@@ -33,7 +33,4 @@ func SendTextMessage(text string, chatID int64, client *tdlib.Client, markup tdl
 	client.SendMessage(chatID, int64(0), int64(0), nil, markup, inputMsgTxt)
 }
 
-func NewReplyKeyboard(btns []string) {
-
-}
 

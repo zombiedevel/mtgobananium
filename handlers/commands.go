@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/zombiedevel/go-tdlib"
 	"github.com/zombiedevel/mtgobabanium/pkg/tg"
+	"github.com/zombiedevel/mtgobabanium/pkg/tv"
 	"go.uber.org/zap"
 	"time"
 )
@@ -69,6 +70,7 @@ func SrcHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	inputMsgTxt := tdlib.NewInputMessageText(format, true, false)
 
 	client.SendMessage(msg.ChatID, msg.MessageThreadID, msg.ID, nil, nil, inputMsgTxt)
+	return
 }
 
 func BanHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
@@ -88,8 +90,27 @@ func BanHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 
 	msgText := fmt.Sprintf("Пользователь %s утилизирован.", user.FirstName)
 	tg.SendTextMessage(msgText, msg.ChatID, client, nil)
+	return
 }
 
 func ReportHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 
+}
+
+func TvHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
+	video := tv.GetMovie(log)
+	if tv.OldMessageId > 0 {
+		if _, err := client.DeleteMessages(msg.ChatID, []int64{tv.OldMessageId}, true); err != nil {
+			log.Error("Error DeleteMessages", zap.Error(err))
+			return
+		}
+	}
+	inputMsg := tdlib.NewInputMessageVideo(tdlib.NewInputFileLocal(video.VideoPath), nil, nil, 0, 300, 300, true, tdlib.NewFormattedText(video.Description, nil), 0)
+	message, err := client.SendMessage(msg.ChatID, int64(0), 0, nil, nil, inputMsg)
+	if err != nil {
+		log.Error("Error sendMessage", zap.Error(err))
+		return
+	}
+	tv.OldMessageId = message.ID
+	return
 }
