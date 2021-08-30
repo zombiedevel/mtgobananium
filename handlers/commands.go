@@ -43,7 +43,11 @@ func RoHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	t := time.Now()
 	uTime := t.Local().Add(time.Minute * 15).Unix()
 	userId := msg.Sender.(*tdlib.MessageSenderUser).UserID
-	user, _ := client.GetUser(userId)
+	user, err := client.GetUser(userId)
+	if err != nil {
+		log.Error("Error GetUser", zap.Error(err))
+		return
+	}
 	if err := restrict(msg.Sender.(*tdlib.MessageSenderUser), msg.ChatID, client, uTime); err != nil {
 		log.Error("Error restrict user", zap.Error(err))
 	}
