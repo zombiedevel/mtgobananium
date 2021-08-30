@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zombiedevel/mtgobabanium/pkg/template"
 	"github.com/zombiedevel/go-tdlib"
 	"github.com/zombiedevel/mtgobabanium/pkg/tg"
 	"github.com/zombiedevel/mtgobabanium/pkg/tv"
@@ -10,11 +11,8 @@ import (
 	"time"
 )
 
-func StartHandler(msg tdlib.TdMessage, client *tdlib.Client, log *zap.Logger) {
-	upd := (msg).(*tdlib.UpdateNewMessage)
-	sender := upd.Message.Sender.(*tdlib.MessageSenderUser)
-	user, err := client.GetUser(int32(sender.UserID))
-
+func StartHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
+	user, err := client.GetUser(msg.Sender.(*tdlib.MessageSenderUser).UserID)
 	if err != nil {
 		log.Error("Error get user", zap.Error(err))
 	}
@@ -33,7 +31,7 @@ func StartHandler(msg tdlib.TdMessage, client *tdlib.Client, log *zap.Logger) {
 	var format *tdlib.FormattedText
 	format = tdlib.NewFormattedText(fmt.Sprintf("Привет, %s", user.FirstName), nil)
 	text := tdlib.NewInputMessageText(format, false, false)
-	client.SendMessage(upd.Message.ChatID, 0,
+	client.SendMessage(msg.ChatID, 0,
 		0,
 		tdlib.NewMessageSendOptions(false, true, nil),
 		tdlib.ReplyMarkup(tdlib.NewReplyMarkupShowKeyboard(buttons, true, false, true)), text)
@@ -112,5 +110,59 @@ func TvHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 		return
 	}
 	tv.OldMessageId = message.ID
+	return
+}
+
+
+func BioHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
+	member, err := client.GetChatMember(msg.ChatID, msg.Sender.(*tdlib.MessageSenderUser).UserID)
+	if err != nil {
+		log.Error("Error GetChatMember", zap.Error(err))
+		return
+	}
+	user, err := client.GetUser(member.UserID)
+	if err != nil {
+		log.Error("Error GetUser", zap.Error(err))
+		return
+	}
+	full, err := client.GetUserFullInfo(member.UserID)
+	if err != nil {
+		log.Error("Error GetUserFullInfo", zap.Error(err))
+		return
+	}
+	text, err := template.Template("bio", "templates/bio.tmpl", struct {
+		*tdlib.User
+		Bio string
+	}{
+		user,
+		full.Bio,
+	})
+	if err != nil {
+		log.Error("Error parsing template", zap.Error(err))
+		return
+	}
+
+	var message tdlib.InputMessageContent
+	message = tdlib.NewInputMessageText(tdlib.NewFormattedText(text, nil), true, true)
+	if user.ProfilePhoto != nil {
+		avatar, err := client.DownloadFile(user.ProfilePhoto.Big.ID, 1, 0, 0, true)
+        if err != nil {
+        	log.Error("Error DownloadFile", zap.Error(err))
+			return
+		}
+		if user.ProfilePhoto.HasAnimation {
+			message = tdlib.NewInputMessageAnimation(
+				tdlib.NewInputFileLocal(avatar.Local.Path),
+				nil, nil, 0, 300, 300, tdlib.NewFormattedText(text, nil))
+		} else {
+			message = tdlib.NewInputMessagePhoto(
+				tdlib.NewInputFileLocal(avatar.Local.Path),
+				nil, nil, 300, 300, tdlib.NewFormattedText(text, nil), 0)
+		}
+	}
+	if _, err := client.SendMessage(msg.ChatID, 0, msg.ReplyToMessageID, nil, nil, message); err != nil {
+		log.Error("Error sendMessage", zap.Error(err))
+		return
+	}
 	return
 }

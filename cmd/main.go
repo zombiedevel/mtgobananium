@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/zombiedevel/go-tdlib"
@@ -67,31 +66,41 @@ func main() {
 				msgData, err := client.GetMessage(update.Message.ChatID, update.Message.ReplyToMessageID)
 				if err != nil {
 					logger.Error("get message reply", zap.Error(err))
+					return
 				}
 				member, err := client.GetChatMember(update.Message.ChatID, update.Message.Sender.(*tdlib.MessageSenderUser).UserID)
 				if err != nil {
 					logger.Error("Error get member", zap.Error(err))
 				}
+				isAdmin := tg.IsAdmin(update.Message.ChatID, member.UserID, client, logger)
 				cmd := tg.TryExtractText(update.Message)
 				switch cmd {
 				case "!src": go handlers.SrcHandler(msgData, client, logger)
 				case "!ban":
-					if member.Status.GetChatMemberStatusEnum() == tdlib.ChatMemberStatusAdministratorType {
+					if isAdmin {
 						go handlers.BanHandler(msgData, client, logger)
 					}
 				case "!ro":
-					if member.Status.GetChatMemberStatusEnum() == tdlib.ChatMemberStatusAdministratorType {
+					if isAdmin {
 						go handlers.RoHandler(msgData, client, logger)
 					}
 				case "!report": go handlers.ReportHandler(msgData, client, logger)
-
+				case "!bio": go handlers.BioHandler(msgData, client, logger)
 				}
 			}
 			switch tg.TryExtractText(update.Message) {
-			case "/start":
-				go handlers.StartHandler(newMsg, client, logger)
 			case "!tv": go handlers.TvHandler(update.Message, client, logger)
-			case "О боте": // TODO: Make about handler
+			// ...
+			}
+
+			// Private switch handlers
+			if tg.IsPrivate(update.Message.ChatID, client, logger) {
+				switch tg.TryExtractText(update.Message) {
+				case "/start":
+					go handlers.StartHandler(update.Message, client, logger)
+				case "О боте": // TODO: Make about handler
+
+				}
 			}
 
 
@@ -118,9 +127,9 @@ func main() {
 
 	// rawUpdates gets all updates comming from tdlib
 	rawUpdates := client.GetRawUpdatesChannel(100)
-	for upd := range rawUpdates {
+	for range rawUpdates {
 		// Show all updates
-		fmt.Printf("%+v\n--------\n",upd.Data)
+		//fmt.Printf("%+v\n--------\n",upd.Data)
 		//message := update.Data
 	}
 }
@@ -149,3 +158,5 @@ func callbackQuery(client *tdlib.Client, log *zap.Logger) {
 		}(newMsg)
 	}
 }
+
+
