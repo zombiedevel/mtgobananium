@@ -82,10 +82,10 @@ func BanHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 		log.Error("Error SetChatMemberStatus", zap.Error(err))
 		return
 	}
-	if _, err := client.DeleteChatMessagesFromUser(msg.ChatID, user.ID); err != nil {
-		log.Error("Error DeleteChatMessagesFromUser", zap.Error(err))
-		return
+	if _, err := client.DeleteMessages(msg.ChatID, []int64{msg.ID}, true); err != nil {
+		log.Error("Error DeleteMessages", zap.Error(err))
 	}
+
 	msgText := fmt.Sprintf("Пользователь %s утилизирован.", user.FirstName)
 	tg.SendTextMessage(msgText, msg.ChatID, client, nil)
 }
