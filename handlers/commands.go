@@ -18,7 +18,7 @@ func StartHandler(msg tdlib.TdMessage, client *tdlib.Client, log *zap.Logger) {
 		log.Error("Error get user", zap.Error(err))
 	}
 	log.Info("StartHandler",
-		zap.Int32("ID", int32(user.ID)),
+		zap.Int32("ID", user.ID),
 		zap.String("Username", user.Username),
 		zap.String("FirstName", user.FirstName),
 		zap.String("LastName", user.LastName),
@@ -71,6 +71,24 @@ func SrcHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	client.SendMessage(msg.ChatID, msg.MessageThreadID, msg.ID, nil, nil, inputMsgTxt)
 }
 
+func BanHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
+	userId := msg.Sender.(*tdlib.MessageSenderUser).UserID
+	user, err := client.GetUser(userId)
+	if err != nil {
+		log.Error("Error GetUser", zap.Error(err))
+		return
+	}
+	if _, err := client.SetChatMemberStatus(msg.ChatID, user.ID, tdlib.NewChatMemberStatusBanned(0)); err != nil {
+		log.Error("Error SetChatMemberStatus", zap.Error(err))
+		return
+	}
+	if _, err := client.DeleteChatMessagesFromUser(msg.ChatID, user.ID); err != nil {
+		log.Error("Error DeleteChatMessagesFromUser", zap.Error(err))
+		return
+	}
+	msgText := fmt.Sprintf("Пользователь %s утилизирован.", user.FirstName)
+	tg.SendTextMessage(msgText, msg.ChatID, client, nil)
+}
 
 func ReportHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 
