@@ -53,12 +53,12 @@ func main() {
 
             // Handle user join to group
 			if update.Message.Content.GetMessageContentEnum() == tdlib.MessageChatAddMembersType {
-                member, err := client.GetChatMember(update.Message.ChatID, update.Message.Sender.(*tdlib.MessageSenderUser).UserID)
-                if err != nil {
-                	logger.Error("Error GetChatMember", zap.Error(err))
-                	return
-				}
-				handlers.Protect(member, client, update.Message.ChatID, logger)
+                //member, err := client.GetChatMember(update.Message.ChatID, update.Message.Sender.(*tdlib.MessageSenderUser).UserID)
+                //if err != nil {
+                //	logger.Error("Error GetChatMember", zap.Error(err))
+                //	return
+				//}
+				//handlers.Protect(member, client, update.Message.ChatID, logger)
 
 			}
 
@@ -66,7 +66,6 @@ func main() {
 				msgData, err := client.GetMessage(update.Message.ChatID, update.Message.ReplyToMessageID)
 				if err != nil {
 					logger.Error("get message reply", zap.Error(err))
-					return
 				}
 				member, err := client.GetChatMember(update.Message.ChatID, update.Message.Sender.(*tdlib.MessageSenderUser).UserID)
 				if err != nil {

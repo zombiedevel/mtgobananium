@@ -3,14 +3,13 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zombiedevel/mtgobabanium/pkg/template"
 	"github.com/zombiedevel/go-tdlib"
+	"github.com/zombiedevel/mtgobabanium/pkg/template"
 	"github.com/zombiedevel/mtgobabanium/pkg/tg"
 	"github.com/zombiedevel/mtgobabanium/pkg/tv"
 	"go.uber.org/zap"
 	"time"
 )
-
 func StartHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	user, err := client.GetUser(msg.Sender.(*tdlib.MessageSenderUser).UserID)
 	if err != nil {
@@ -97,19 +96,16 @@ func ReportHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 
 func TvHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	video := tv.GetMovie(log)
-	if tv.OldMessageId > 0 {
-		if _, err := client.DeleteMessages(msg.ChatID, []int64{tv.OldMessageId}, true); err != nil {
-			log.Error("Error DeleteMessages", zap.Error(err))
-			return
-		}
-	}
 	inputMsg := tdlib.NewInputMessageVideo(tdlib.NewInputFileLocal(video.VideoPath), nil, nil, 0, 300, 300, true, tdlib.NewFormattedText(video.Description, nil), 0)
-	message, err := client.SendMessage(msg.ChatID, int64(0), 0, nil, nil, inputMsg)
+	_, err := client.SendMessage(msg.ChatID, msg.MessageThreadID, msg.ID, nil, nil, inputMsg)
 	if err != nil {
 		log.Error("Error sendMessage", zap.Error(err))
 		return
 	}
-	tv.OldMessageId = message.ID
+
+	if _, err := client.DeleteMessages(msg.ChatID, []int64{msg.ID}, true); err != nil {
+		log.Error("Error DeleteMessages", zap.Error(err))
+	}
 	return
 }
 
@@ -141,9 +137,13 @@ func BioHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 		log.Error("Error parsing template", zap.Error(err))
 		return
 	}
-
+	format, err := client.ParseTextEntities(text, tdlib.NewTextParseModeHTML())
+	if err != nil {
+		log.Error("Error ParseTextEntities", zap.Error(err))
+		return
+	}
 	var message tdlib.InputMessageContent
-	message = tdlib.NewInputMessageText(tdlib.NewFormattedText(text, nil), true, true)
+	message = tdlib.NewInputMessageText(format, true, true)
 	if user.ProfilePhoto != nil {
 		avatar, err := client.DownloadFile(user.ProfilePhoto.Big.ID, 1, 0, 0, true)
         if err != nil {
@@ -153,14 +153,21 @@ func BioHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 		if user.ProfilePhoto.HasAnimation {
 			message = tdlib.NewInputMessageAnimation(
 				tdlib.NewInputFileLocal(avatar.Local.Path),
-				nil, nil, 0, 300, 300, tdlib.NewFormattedText(text, nil))
+				nil, nil, 0, 300, 300, format)
 		} else {
 			message = tdlib.NewInputMessagePhoto(
 				tdlib.NewInputFileLocal(avatar.Local.Path),
-				nil, nil, 300, 300, tdlib.NewFormattedText(text, nil), 0)
+				nil, nil, 300, 300, format, 0)
 		}
+
+		defer tv.DeleteFile(avatar.Local.Path)
 	}
-	if _, err := client.SendMessage(msg.ChatID, 0, msg.ReplyToMessageID, nil, nil, message); err != nil {
+	if _, err := client.DeleteMessages(msg.ChatID, []int64{msg.ID}, true); err != nil {
+		log.Error("Error DeleteMessages", zap.Error(err))
+		return
+	}
+	if _, err := client.SendMessage(msg.ChatID, 0, msg.ReplyToMessageID,
+		nil, nil, message); err != nil {
 		log.Error("Error sendMessage", zap.Error(err))
 		return
 	}

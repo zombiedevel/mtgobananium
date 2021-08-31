@@ -34,3 +34,7 @@ func restrict(user *tdlib.MessageSenderUser, chatID int64, client *tdlib.Client,
 	}
 	return nil
 }
+
+func ProtectMeHandler() {
+
+}
