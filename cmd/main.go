@@ -1,8 +1,7 @@
 package main
 
 import (
-	"github.com/joho/godotenv"
-	_ "github.com/joho/godotenv/autoload"
+	"flag"
 	"github.com/zombiedevel/go-tdlib"
 	"github.com/zombiedevel/mtgobabanium/handlers"
 	"github.com/zombiedevel/mtgobabanium/pkg/tg"
@@ -11,23 +10,19 @@ import (
 
 
 func main() {
-	_ = godotenv.Load(".env")
-
+    appId := flag.String("app-id", "1869176", "Application ID")
+    appHash := flag.String("app-hash", "abd7c9127be5e448a5c02b403236d9c4", "Application hash")
+    botToken := flag.String("token", "", "Bot token")
 	tdlib.SetLogVerbosityLevel(1)
 	tdlib.SetFilePath("./errors.txt")
 
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
-	var config map[string]string
-	config, err := godotenv.Read()
-	if err != nil {
-		logger.Error("Error load env", zap.Error(err))
-		return
-	}
+
 	// Create new instance of client
 	client := tdlib.NewClient(tdlib.Config{
-		APIID:               config["APP_ID"],
-		APIHash:             config["APP_HASH"],
+		APIID:               *appId,
+		APIHash:             *appHash,
 		SystemLanguageCode:  "en",
 		DeviceModel:         "Server",
 		SystemVersion:       "1.0.0",
@@ -70,6 +65,7 @@ func main() {
 				member, err := client.GetChatMember(update.Message.ChatID, update.Message.Sender.(*tdlib.MessageSenderUser).UserID)
 				if err != nil {
 					logger.Error("Error get member", zap.Error(err))
+					return
 				}
 				isAdmin := tg.IsAdmin(update.Message.ChatID, member.UserID, client, logger)
 				cmd := tg.TryExtractText(update.Message)
@@ -109,7 +105,7 @@ func main() {
 	for {
 		currentState, _ := client.Authorize()
 		if currentState.GetAuthorizationStateEnum() == tdlib.AuthorizationStateWaitPhoneNumberType {
-			_, err := client.CheckAuthenticationBotToken(config["BOT_TOKEN"])
+			_, err := client.CheckAuthenticationBotToken(*botToken)
 			if err != nil {
 				logger.Error("Error check bot token", zap.Error(err))
 				return
