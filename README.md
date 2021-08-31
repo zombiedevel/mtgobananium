@@ -29,8 +29,7 @@ You can use prebuilt tdlib with following Docker image:
 ``` shell
 git clone https://github.com/zombiedevel/mtgobananium.git 
 cd mtgobananium
-# Edit .env for set bot token app-id- and app-hash 
 docker build -f.DockerFile -t bananium .
 ```
-##On build with docker success
-```docker run -d bananium```
+##On build success
+```docker run -d bananium -app-id <app id> -app-hash <app hash> -token <bot token>```
