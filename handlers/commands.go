@@ -92,20 +92,25 @@ func BanHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 
 func ReportHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 
+
 }
 
 func TvHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	video := tv.GetMovie(log)
 	inputMsg := tdlib.NewInputMessageVideo(tdlib.NewInputFileLocal(video.VideoPath), nil, nil, 0, 300, 300, true, tdlib.NewFormattedText(video.Description, nil), 0)
-	_, err := client.SendMessage(msg.ChatID, msg.MessageThreadID, msg.ID, nil, nil, inputMsg)
+	m, err := client.SendMessage(msg.ChatID, msg.MessageThreadID, msg.ID, nil, nil, inputMsg)
 	if err != nil {
 		log.Error("Error sendMessage", zap.Error(err))
 		return
 	}
+	fmt.Println(m.ID, msg.ID)
+    time.AfterFunc(time.Second * 15, func() {
+		if _, err := client.DeleteMessages(msg.ChatID, []int64{m.ID}, true); err != nil {
+			log.Error("Error DeleteMessages", zap.Error(err))
+		}
 
-	if _, err := client.DeleteMessages(msg.ChatID, []int64{msg.ID}, true); err != nil {
-		log.Error("Error DeleteMessages", zap.Error(err))
-	}
+	})
+
 	return
 }
 
@@ -137,37 +142,26 @@ func BioHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 		log.Error("Error parsing template", zap.Error(err))
 		return
 	}
-	format, err := client.ParseTextEntities(text, tdlib.NewTextParseModeHTML())
-	if err != nil {
-		log.Error("Error ParseTextEntities", zap.Error(err))
-		return
-	}
+
 	var message tdlib.InputMessageContent
-	message = tdlib.NewInputMessageText(format, true, true)
+	message = tdlib.NewInputMessageText(tdlib.NewFormattedText(text, nil), true, true)
 	if user.ProfilePhoto != nil {
 		avatar, err := client.DownloadFile(user.ProfilePhoto.Big.ID, 1, 0, 0, true)
-        if err != nil {
-        	log.Error("Error DownloadFile", zap.Error(err))
+		if err != nil {
+			log.Error("Error DownloadFile", zap.Error(err))
 			return
 		}
 		if user.ProfilePhoto.HasAnimation {
 			message = tdlib.NewInputMessageAnimation(
 				tdlib.NewInputFileLocal(avatar.Local.Path),
-				nil, nil, 0, 300, 300, format)
+				nil, nil, 0, 300, 300, tdlib.NewFormattedText(text, nil))
 		} else {
 			message = tdlib.NewInputMessagePhoto(
 				tdlib.NewInputFileLocal(avatar.Local.Path),
-				nil, nil, 300, 300, format, 0)
+				nil, nil, 300, 300, tdlib.NewFormattedText(text, nil), 0)
 		}
-
-		defer tv.DeleteFile(avatar.Local.Path)
 	}
-	//if _, err := client.DeleteMessages(msg.ChatID, []int64{msg.ID}, true); err != nil {
-	//	log.Error("Error DeleteMessages", zap.Error(err))
-	//	return
-	//}
-	if _, err := client.SendMessage(msg.ChatID, 0, msg.ReplyToMessageID,
-		nil, nil, message); err != nil {
+	if _, err := client.SendMessage(msg.ChatID, 0, msg.ReplyToMessageID, nil, nil, message); err != nil {
 		log.Error("Error sendMessage", zap.Error(err))
 		return
 	}
