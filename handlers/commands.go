@@ -162,10 +162,10 @@ func BioHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 
 		defer tv.DeleteFile(avatar.Local.Path)
 	}
-	if _, err := client.DeleteMessages(msg.ChatID, []int64{msg.ID}, true); err != nil {
-		log.Error("Error DeleteMessages", zap.Error(err))
-		return
-	}
+	//if _, err := client.DeleteMessages(msg.ChatID, []int64{msg.ID}, true); err != nil {
+	//	log.Error("Error DeleteMessages", zap.Error(err))
+	//	return
+	//}
 	if _, err := client.SendMessage(msg.ChatID, 0, msg.ReplyToMessageID,
 		nil, nil, message); err != nil {
 		log.Error("Error sendMessage", zap.Error(err))
