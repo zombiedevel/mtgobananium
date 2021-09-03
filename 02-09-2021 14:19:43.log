@@ -1,0 +1,23 @@
+09/02/2021 02:19:43 PM:INFO:SHOW VARIABLES LIKE 'sql_mode'
+09/02/2021 02:19:43 PM:INFO:[raw sql] ()
+09/02/2021 02:19:43 PM:INFO:SHOW VARIABLES LIKE 'lower_case_table_names'
+09/02/2021 02:19:43 PM:INFO:[generated in 0.00032s] ()
+09/02/2021 02:19:43 PM:INFO:SELECT DATABASE()
+09/02/2021 02:19:43 PM:INFO:[raw sql] ()
+09/02/2021 02:19:43 PM:INFO:BEGIN (implicit)
+09/02/2021 02:19:43 PM:INFO:SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = %s AND table_name = %s
+09/02/2021 02:19:43 PM:INFO:[generated in 0.00025s] ('crypto', 'users')
+09/02/2021 02:19:43 PM:INFO:SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = %s AND table_name = %s
+09/02/2021 02:19:43 PM:INFO:[cached since 0.006244s ago] ('crypto', 'directions')
+09/02/2021 02:19:43 PM:INFO:COMMIT
+09/02/2021 02:19:43 PM:INFO:Bot: CryptOnlybot [@CryptOnlyBot]
+09/02/2021 02:19:45 PM:WARNING:Updates were skipped successfully.
+09/02/2021 02:19:45 PM:INFO:Start polling.
+09/02/2021 04:48:36 PM:INFO:BEGIN (implicit)
+09/02/2021 04:48:36 PM:INFO:INSERT INTO users (`telegramId`, username, `firstName`, `lastName`, `status`) VALUES (%s, %s, %s, %s, %s)
+09/02/2021 04:48:36 PM:INFO:[generated in 0.00031s] (783510790, 'zombiedev', 'Зомби', 'Engineer🧟\u200d♂️', 1)
+09/02/2021 04:48:36 PM:INFO:ROLLBACK
+09/02/2021 04:48:36 PM:INFO:BEGIN (implicit)
+09/02/2021 04:48:36 PM:INFO:SELECT directions.id AS directions_id, directions.direction AS directions_direction, directions.count AS directions_count 
+FROM directions
+09/02/2021 04:48:36 PM:INFO:[generated in 0.00065s] ()

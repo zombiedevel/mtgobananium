@@ -86,6 +86,7 @@ func main() {
 			}
 			switch tg.TryExtractText(update.Message) {
 			case "!tv": go handlers.TvHandler(update.Message, client, logger)
+			case "!gpt": go handlers.GptHandler(update.Message, client, logger)
 			// ...
 			}
 

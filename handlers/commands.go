@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/zombiedevel/go-tdlib"
+	"github.com/zombiedevel/mtgobabanium/internal/gentext"
 	"github.com/zombiedevel/mtgobabanium/pkg/template"
 	"github.com/zombiedevel/mtgobabanium/pkg/tg"
 	"github.com/zombiedevel/mtgobabanium/pkg/tv"
@@ -114,6 +115,32 @@ func TvHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	return
 }
 
+func GptHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
+	message, err := client.GetMessage(msg.ChatID, msg.ReplyToMessageID)
+	if err != nil {
+		log.Error("Error GetMessage", zap.Error(err))
+		return
+	}
+	replyMsgText := message.Content.(*tdlib.MessageText).Text.Text
+	gpt := gentext.NewGPT3()
+	gptText, err := gpt.Query(replyMsgText)
+	if err != nil {
+		log.Error("Error GPT3", zap.Error(err))
+		return
+	}
+	var format *tdlib.FormattedText
+	format = tdlib.NewFormattedText(gptText, nil)
+	msgInput := tdlib.NewInputMessageText(format, true, true)
+	if _, err := client.SendMessage(msg.ChatID, msg.MessageThreadID, message.ID, nil, nil, msgInput); err != nil {
+		log.Error("Error sendMessage", zap.Error(err))
+		return
+	}
+	if _, err := client.DeleteMessages(msg.ChatID, []int64{msg.ID}, true); err != nil {
+		log.Error("Error DeleteMessages", zap.Error(err))
+		return
+	}
+  return
+}
 
 func BioHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	member, err := client.GetChatMember(msg.ChatID, msg.Sender.(*tdlib.MessageSenderUser).UserID)
