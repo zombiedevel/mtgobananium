@@ -121,6 +121,7 @@ func GptHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 		log.Error("Error GetMessage", zap.Error(err))
 		return
 	}
+	if message.Content.GetMessageContentEnum() != "messageText" { return }
 	replyMsgText := message.Content.(*tdlib.MessageText).Text.Text
 	gpt := gentext.NewGPT3()
 	gptText, err := gpt.Query(replyMsgText)
