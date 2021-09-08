@@ -32,4 +32,4 @@ cd mtgobananium
 docker build -f.DockerFile -t bananium .
 ```
 ##On build success
-```docker run -d bananium -app-id <app id> -app-hash <app hash> -token <bot token>```
+```docker run -d bananium -app-id <app id> -app-hash <app hash> -token <bot token> -admins-channel <ID Admins channel>```
