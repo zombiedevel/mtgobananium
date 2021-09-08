@@ -10,7 +10,6 @@ RUN apk --update add build-base
 
 
 WORKDIR /app
-COPY ./templates /
 COPY . .
 RUN go build --ldflags "-extldflags '-static -L/usr/local/lib -ltdjson_static -ltdjson_private -ltdclient -ltdcore -ltdactor -ltddb -ltdsqlite -ltdnet -ltdutils -ldl -lm -lssl -lcrypto -lstdc++ -lz'" -o /tmp/bananium cmd/main.go
 
