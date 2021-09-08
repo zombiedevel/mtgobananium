@@ -68,10 +68,10 @@ func GetMovie(log *zap.Logger) Movie {
 	resultCount := len(movies.Result)
 	index := rand.Intn(resultCount - 1)
 	if resultCount > 0 {
-		if err := DownloadFile("./tmp/video.mp4", movies.Result[index].VideoURL); err != nil {
+		if err := DownloadFile("./tmp/video.gif", movies.Result[index].GifURL); err != nil {
 			log.Error("Error DownloadFile", zap.Error(err))
 		}
-		movie.VideoPath = "tmp/video.mp4"
+		movie.VideoPath = "tmp/video.gif"
 		movie.Description = movies.Result[index].Description
 	}
 	return movie

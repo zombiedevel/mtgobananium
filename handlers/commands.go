@@ -97,22 +97,24 @@ func ReportHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 }
 
 func TvHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
-	video := tv.GetMovie(log)
-	inputMsg := tdlib.NewInputMessageVideo(tdlib.NewInputFileLocal(video.VideoPath), nil, nil, 0, 300, 300, true, tdlib.NewFormattedText(video.Description, nil), 0)
-	m, err := client.SendMessage(msg.ChatID, msg.MessageThreadID, msg.ID, nil, nil, inputMsg)
+	moar, inputMsg := NewTvMessage(log)
+	_, err := client.SendMessage(msg.ChatID, msg.MessageThreadID, msg.ID, nil, tdlib.NewReplyMarkupInlineKeyboard(moar), inputMsg)
 	if err != nil {
 		log.Error("Error sendMessage", zap.Error(err))
 		return
 	}
-	fmt.Println(m.ID, msg.ID)
-    time.AfterFunc(time.Second * 15, func() {
-		if _, err := client.DeleteMessages(msg.ChatID, []int64{m.ID}, true); err != nil {
-			log.Error("Error DeleteMessages", zap.Error(err))
-		}
-
-	})
 
 	return
+}
+
+func NewTvMessage(log *zap.Logger) ([][]tdlib.InlineKeyboardButton, *tdlib.InputMessageAnimation) {
+	var moar [][]tdlib.InlineKeyboardButton
+	moar = append(moar, []tdlib.InlineKeyboardButton{
+		*tdlib.NewInlineKeyboardButton("MOAR", tdlib.NewInlineKeyboardButtonTypeCallback([]byte("next_movie"))),
+	})
+	video := tv.GetMovie(log)
+	inputMsg := tdlib.NewInputMessageAnimation(tdlib.NewInputFileLocal(video.VideoPath), nil, nil, 0, 300, 300,  tdlib.NewFormattedText(video.Description, nil))
+	return moar, inputMsg
 }
 
 func GptHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
