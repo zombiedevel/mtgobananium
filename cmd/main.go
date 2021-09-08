@@ -15,6 +15,7 @@ func main() {
     appId := flag.String("app-id", "1869176", "Application ID")
     appHash := flag.String("app-hash", "abd7c9127be5e448a5c02b403236d9c4", "Application hash")
     botToken := flag.String("token", "", "Bot token")
+    adminsChanelID := flag.Int64("admins-channel", 0, "ID Admins channel")
     flag.Parse()
 	tdlib.SetLogVerbosityLevel(1)
 	tdlib.SetFilePath("./errors.txt")
@@ -41,6 +42,10 @@ func main() {
 
 	go func() {
 		eventFilter := func(msg *tdlib.TdMessage) bool {
+			updateMsg := (*msg).(*tdlib.UpdateNewMessage)
+			if updateMsg.Message.Sender.GetMessageSenderEnum() != tdlib.MessageSenderUserType {
+				return false
+			}
 			return true
 		}
 
@@ -82,7 +87,7 @@ func main() {
 					if isAdmin {
 						go handlers.RoHandler(msgData, client, logger)
 					}
-				case "!report": go handlers.ReportHandler(msgData, client, logger)
+				case "!report": go handlers.ReportHandler(msgData, *adminsChanelID, client, logger)
 				case "!bio": go handlers.BioHandler(msgData, client, logger)
 				}
 			}
@@ -152,7 +157,7 @@ func callbackQuery(client *tdlib.Client, log *zap.Logger) {
 			}
 			switch {
 			case data == "next_movie":
-				handlers.NextMovieCallback(msg, client, log)
+				go handlers.NextMovieCallback(msg, client, log)
 			}
 		}(newMsg)
 	}

@@ -91,9 +91,26 @@ func BanHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	return
 }
 
-func ReportHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
+func ReportHandler(msg *tdlib.Message, adminsChannelID int64,  client *tdlib.Client, log *zap.Logger) {
+	channel, err := client.GetChat(adminsChannelID)
+	if err != nil {
+		log.Error("Error GetChat", zap.Error(err))
+		return
+	}
 
+	_, err = client.ForwardMessages(channel.ID, msg.ChatID, []int64{msg.ID}, nil, false, false)
+	if err != nil {
+		log.Error("Error ForwardMessages", zap.Error(err))
+		return
+	}
+	var format *tdlib.FormattedText
+	format = tdlib.NewFormattedText("Мы примем все необходимые меры, спасибо.", nil)
+	msgInput := tdlib.NewInputMessageText(format, true, true)
 
+	if _, err := client.SendMessage(msg.ChatID, msg.MessageThreadID, msg.ID, nil, nil, msgInput); err != nil {
+		log.Error("Error sendMessage", zap.Error(err))
+		return
+	}
 }
 
 func TvHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
