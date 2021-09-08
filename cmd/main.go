@@ -8,7 +8,9 @@ import (
 	"go.uber.org/zap"
 )
 
-
+func init() {
+	//database.Setup()
+}
 func main() {
     appId := flag.String("app-id", "1869176", "Application ID")
     appHash := flag.String("app-hash", "abd7c9127be5e448a5c02b403236d9c4", "Application hash")

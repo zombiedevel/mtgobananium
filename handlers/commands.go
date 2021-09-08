@@ -146,6 +146,10 @@ func GptHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 }
 
 func BioHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
+	templateStr := fmt.Sprintf(`ID: {{.ID}}
+Имя: {{.FirstName}} {{.LastName}}
+Имя пользователя: @{{.Username}}
+О себе: {{.Bio}}`)
 	member, err := client.GetChatMember(msg.ChatID, msg.Sender.(*tdlib.MessageSenderUser).UserID)
 	if err != nil {
 		log.Error("Error GetChatMember", zap.Error(err))
@@ -161,7 +165,7 @@ func BioHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 		log.Error("Error GetUserFullInfo", zap.Error(err))
 		return
 	}
-	text, err := template.Template("bio", "templates/bio.tmpl", struct {
+	text, err := template.Template("bio", templateStr, struct {
 		*tdlib.User
 		Bio string
 	}{
