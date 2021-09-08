@@ -166,7 +166,7 @@ func BioHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	templateStr := fmt.Sprintf(`ID: {{.ID}}
 Имя: {{.FirstName}} {{.LastName}}
 Имя пользователя: @{{.Username}}
-О себе: {{.Bio}}`)
+О себе: {{.Bio}}{{if not .Bio}}Отсутствует{{end}}`)
 	member, err := client.GetChatMember(msg.ChatID, msg.Sender.(*tdlib.MessageSenderUser).UserID)
 	if err != nil {
 		log.Error("Error GetChatMember", zap.Error(err))
