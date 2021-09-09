@@ -26,17 +26,16 @@ func (g *GPT3) WithEndpoint(endpoint string) *GPT3 {
 func NewGPT3() *GPT3 {
 	return &GPT3{
 		client:   http.DefaultClient,
-		endpoint: "https://api.sbercloud.ru/v2/aicloud/gpt3",
+		endpoint: "https://api.aicloud.sbercloud.ru/public/v1/public_inference/gpt3/predict",
 	}
 }
 
 type gpt3Result struct {
-	Status string `json:"status"`
-	Data   string `json:"data"`
+	Data   string `json:"predictions"`
 }
 
 type gpt3Query struct {
-	Question string `json:"question"`
+	Question string `json:"text"`
 }
 
 func (g *GPT3) Query(query string) (string, error) {
@@ -75,9 +74,6 @@ func (g *GPT3) Query(query string) (string, error) {
 	var r gpt3Result
 	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
 		return "", xerrors.Errorf("decode response: %w", err)
-	}
-	if r.Status != "success" {
-		return "", xerrors.Errorf("got bad status: %q", r.Status)
 	}
 
 	return r.Data, nil
