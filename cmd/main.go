@@ -6,10 +6,11 @@ import (
 	"github.com/zombiedevel/mtgobabanium/handlers"
 	"github.com/zombiedevel/mtgobabanium/pkg/tg"
 	"go.uber.org/zap"
+	"log"
 )
 
 func init() {
-	//database.Setup()
+	// database.Setup()
 }
 func main() {
     appId := flag.String("app-id", "1869176", "Application ID")
@@ -20,7 +21,10 @@ func main() {
 	tdlib.SetLogVerbosityLevel(1)
 	tdlib.SetFilePath("./errors.txt")
 
-	logger, _ := zap.NewProduction()
+	logger, err := zap.NewProduction()
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer logger.Sync()
 
 	// Create new instance of client
@@ -43,10 +47,7 @@ func main() {
 	go func() {
 		eventFilter := func(msg *tdlib.TdMessage) bool {
 			updateMsg := (*msg).(*tdlib.UpdateNewMessage)
-			if updateMsg.Message.Sender.GetMessageSenderEnum() != tdlib.MessageSenderUserType {
-				return false
-			}
-			return true
+			return updateMsg.Message.Sender.GetMessageSenderEnum() == tdlib.MessageSenderUserType
 		}
 
 		receiver := client.AddEventReceiver(&tdlib.UpdateNewMessage{}, eventFilter, 1000)
@@ -55,15 +56,6 @@ func main() {
 			update := (newMsg).(*tdlib.UpdateNewMessage)
 
             // Handle user join to group
-			if update.Message.Content.GetMessageContentEnum() == tdlib.MessageChatAddMembersType {
-                //member, err := client.GetChatMember(update.Message.ChatID, update.Message.Sender.(*tdlib.MessageSenderUser).UserID)
-                //if err != nil {
-                //	logger.Error("Error GetChatMember", zap.Error(err))
-                //	return
-				//}
-				//handlers.Protect(member, client, update.Message.ChatID, logger)
-
-			}
 
 			if update.Message.ReplyToMessageID > 0 {
 				msgData, err := client.GetMessage(update.Message.ChatID, update.Message.ReplyToMessageID)

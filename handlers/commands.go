@@ -11,6 +11,7 @@ import (
 	"go.uber.org/zap"
 	"time"
 )
+
 func StartHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	user, err := client.GetUser(msg.Sender.(*tdlib.MessageSenderUser).UserID)
 	if err != nil {
@@ -28,15 +29,19 @@ func StartHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 		*tdlib.NewKeyboardButton("О боте", tdlib.NewKeyboardButtonTypeText()),
 	},
 	)
-	var format *tdlib.FormattedText
-	format = tdlib.NewFormattedText(fmt.Sprintf("Привет, %s", user.FirstName), nil)
+
+	format := tdlib.NewFormattedText(fmt.Sprintf("Привет, %s", user.FirstName), nil)
 	text := tdlib.NewInputMessageText(format, false, false)
-	client.SendMessage(msg.ChatID, 0,
+	_, err = client.SendMessage(msg.ChatID, 0,
 		0,
 		tdlib.NewMessageSendOptions(false, true, nil),
 		tdlib.ReplyMarkup(tdlib.NewReplyMarkupShowKeyboard(buttons, true, false, true)), text)
-	return
+	if err != nil {
+		log.Error("Error SendMessage", zap.Error(err))
+		return
+	}
 }
+
 // Restrict member handler
 func RoHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	if msg == nil {
@@ -44,8 +49,8 @@ func RoHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	}
 	t := time.Now()
 	uTime := t.Local().Add(time.Minute * 15).Unix()
-	userId := msg.Sender.(*tdlib.MessageSenderUser).UserID
-	user, err := client.GetUser(userId)
+	userID := msg.Sender.(*tdlib.MessageSenderUser).UserID
+	user, err := client.GetUser(userID)
 	if err != nil {
 		log.Error("Error GetUser", zap.Error(err))
 		return
@@ -54,27 +59,29 @@ func RoHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 		log.Error("Error restrict user", zap.Error(err))
 	}
 	tg.SendTextMessage(fmt.Sprintf("Пользователь %s помещён в карантин.", user.FirstName), msg.ChatID, client, nil)
-	return
 }
 
 func SrcHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	if msg == nil {
 		return
 	}
-	byte, err := json.MarshalIndent(msg, "", " ")
+	bytes, err := json.MarshalIndent(msg, "", " ")
 	if err != nil {
 		log.Error("Error MarshalIndent", zap.Error(err))
 		return
 	}
 	var format *tdlib.FormattedText
-	format, err = client.ParseTextEntities(fmt.Sprintf("```%s```", string(byte)), tdlib.NewTextParseModeMarkdown(2))
+	format, err = client.ParseTextEntities(fmt.Sprintf("```%s```", string(bytes)), tdlib.NewTextParseModeMarkdown(2))
 	if err != nil {
 		log.Error("Error ParseTextEntities", zap.Error(err))
 	}
 	inputMsgTxt := tdlib.NewInputMessageText(format, true, false)
 
-	client.SendMessage(msg.ChatID, msg.MessageThreadID, msg.ID, nil, nil, inputMsgTxt)
-	return
+	_, err = client.SendMessage(msg.ChatID, msg.MessageThreadID, msg.ID, nil, nil, inputMsgTxt)
+	if err != nil {
+		log.Error("Error SendMessage", zap.Error(err))
+	}
+
 }
 
 func BanHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
@@ -84,8 +91,8 @@ func BanHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	if msg.Sender.GetMessageSenderEnum() != tdlib.MessageSenderUserType {
 		return
 	}
-	userId := msg.Sender.(*tdlib.MessageSenderUser).UserID
-	user, err := client.GetUser(userId)
+	userID := msg.Sender.(*tdlib.MessageSenderUser).UserID
+	user, err := client.GetUser(userID)
 	if err != nil {
 		log.Error("Error GetUser", zap.Error(err))
 		return
@@ -103,7 +110,7 @@ func BanHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	return
 }
 
-func ReportHandler(msg *tdlib.Message, adminsChannelID int64,  client *tdlib.Client, log *zap.Logger) {
+func ReportHandler(msg *tdlib.Message, adminsChannelID int64, client *tdlib.Client, log *zap.Logger) {
 	if msg == nil {
 		return
 	}
@@ -148,7 +155,7 @@ func NewTvMessage(log *zap.Logger) ([][]tdlib.InlineKeyboardButton, *tdlib.Input
 		*tdlib.NewInlineKeyboardButton("MOAR", tdlib.NewInlineKeyboardButtonTypeCallback([]byte("next_movie"))),
 	})
 	video := tv.GetMovie(log)
-	inputMsg := tdlib.NewInputMessageAnimation(tdlib.NewInputFileLocal(video.VideoPath), nil, nil, 0, 300, 300,  tdlib.NewFormattedText(video.Description, nil))
+	inputMsg := tdlib.NewInputMessageAnimation(tdlib.NewInputFileLocal(video.VideoPath), nil, nil, 0, 300, 300, tdlib.NewFormattedText(video.Description, nil))
 	return moar, inputMsg
 }
 
@@ -161,7 +168,9 @@ func GptHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 		log.Error("Error GetMessage", zap.Error(err))
 		return
 	}
-	if message.Content.GetMessageContentEnum() != "messageText" { return }
+	if message.Content.GetMessageContentEnum() != "messageText" {
+		return
+	}
 	replyMsgText := message.Content.(*tdlib.MessageText).Text.Text
 	gpt := gentext.NewGPT3()
 	gptText, err := gpt.Query(replyMsgText)
@@ -180,7 +189,7 @@ func GptHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 		log.Error("Error DeleteMessages", zap.Error(err))
 		return
 	}
-  return
+	return
 }
 
 func BioHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
