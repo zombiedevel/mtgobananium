@@ -26,3 +26,5 @@
 [ 1][t 4][1631100346.934618234][TdDb.cpp:431][#1][!Td]	Destroy bad SQLite database because of [Error : 0 : [query:SELECT sqlcipher_export('encrypted')] to database "/Users/valery/go/src/github.com/zombiedevel/mtgobabanium/tdlib-db/db.sqlite" failed: no such function: sqlcipher_export]
 [ 1][t 4][1631103595.798929929][FileManager.hpp:176][#1][!Td]	Can't resend local file [full local location of animations] at "/Users/valery/go/src/github.com/zombiedevel/mtgobabanium/tmp/video.gif" of size 593845 owned by chat -408323812
 [ 1][t 4][1631103595.799863100][MessageContent.cpp:1430][#1][!MessagesManager]	Load a message with an invalid content of type Animation
+[ 1][t 4][1631306264.007490158][Binlog.cpp:522][#1][!Td]	[Error : 0 : Too big event [size:103668053]]
+[ 1][t 4][1631306264.007737159][Binlog.cpp:557][#1][!Td]	Truncate [path:/Users/valery/go/src/github.com/zombiedevel/mtgobabanium/tdlib-db/td.binlog][old_size:17176][new_size:16556]
