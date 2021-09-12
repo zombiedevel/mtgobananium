@@ -42,7 +42,7 @@ func StartHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	}
 }
 
-// Restrict member handler
+// RoHandler Restrict member handler
 func RoHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	if msg == nil {
 		return
@@ -81,7 +81,6 @@ func SrcHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	if err != nil {
 		log.Error("Error SendMessage", zap.Error(err))
 	}
-
 }
 
 func BanHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
@@ -107,7 +106,6 @@ func BanHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 
 	msgText := fmt.Sprintf("Пользователь %s утилизирован.", user.FirstName)
 	tg.SendTextMessage(msgText, msg.ChatID, client, nil)
-	return
 }
 
 func ReportHandler(msg *tdlib.Message, adminsChannelID int64, client *tdlib.Client, log *zap.Logger) {
@@ -125,8 +123,8 @@ func ReportHandler(msg *tdlib.Message, adminsChannelID int64, client *tdlib.Clie
 		log.Error("Error ForwardMessages", zap.Error(err))
 		return
 	}
-	var format *tdlib.FormattedText
-	format = tdlib.NewFormattedText("Мы примем все необходимые меры, спасибо.", nil)
+
+	format := tdlib.NewFormattedText("Мы примем все необходимые меры, спасибо.", nil)
 	msgInput := tdlib.NewInputMessageText(format, true, true)
 
 	if _, err := client.SendMessage(msg.ChatID, msg.MessageThreadID, msg.ID, nil, nil, msgInput); err != nil {
@@ -145,8 +143,6 @@ func TvHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 		log.Error("Error sendMessage", zap.Error(err))
 		return
 	}
-
-	return
 }
 
 func NewTvMessage(log *zap.Logger) ([][]tdlib.InlineKeyboardButton, *tdlib.InputMessageAnimation) {
@@ -178,8 +174,8 @@ func GptHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 		log.Error("Error GPT3", zap.Error(err))
 		return
 	}
-	var format *tdlib.FormattedText
-	format = tdlib.NewFormattedText(gptText, nil)
+
+	format := tdlib.NewFormattedText(gptText, nil)
 	msgInput := tdlib.NewInputMessageText(format, true, true)
 	if _, err := client.SendMessage(msg.ChatID, msg.MessageThreadID, message.ID, nil, nil, msgInput); err != nil {
 		log.Error("Error sendMessage", zap.Error(err))
@@ -189,17 +185,16 @@ func GptHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 		log.Error("Error DeleteMessages", zap.Error(err))
 		return
 	}
-	return
 }
 
 func BioHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 	if msg == nil {
 		return
 	}
-	templateStr := fmt.Sprintf(`ID: {{.ID}}
-Имя: {{.FirstName}} {{.LastName}}
-Имя пользователя: @{{.Username}}
-О себе: {{.Bio}}{{if not .Bio}}Отсутствует{{end}}`)
+	templateStr := `ID: {{.ID}}
+	Имя: {{.FirstName}} {{.LastName}}
+	Имя пользователя: @{{.Username}}
+	О себе: {{.Bio}}{{if not .Bio}}Отсутствует{{end}}`
 	member, err := client.GetChatMember(msg.ChatID, msg.Sender.(*tdlib.MessageSenderUser).UserID)
 	if err != nil {
 		log.Error("Error GetChatMember", zap.Error(err))
@@ -249,5 +244,4 @@ func BioHandler(msg *tdlib.Message, client *tdlib.Client, log *zap.Logger) {
 		log.Error("Error sendMessage", zap.Error(err))
 		return
 	}
-	return
 }
