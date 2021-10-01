@@ -47,4 +47,4 @@ docker build -f.DockerFile -t bananium .
 ```docker run -d bananium -app-id <app id> -app-hash <app hash> -token <bot token> -admins-channel <ID Admins channel>```
 
 
-This project clone NodeJS Bananium 
+This project clone NodeJS Bananium https://github.com/bananiumbot/bot
