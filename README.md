@@ -1,6 +1,18 @@
-# mtgobananium
+#Tdlib Go Bananium
 
 ## Installation
+
+#Bot commands
+
+```bash
+!ro - Mute user (15 minutes)
+!ban - Ban & deleting all messages from user
+!bio - Show user Bio (Avatar, ID, Username, About)
+!tv - Show funy GIF`s IT
+!gpt - Answer text message from SberCloud GTP-3 api
+!report - Forward message to admin channel
+
+```
 
 First of all you need to clone the Tdlib repo and build it:
 ```bash
@@ -33,3 +45,6 @@ docker build -f.DockerFile -t bananium .
 ```
 ##On build success
 ```docker run -d bananium -app-id <app id> -app-hash <app hash> -token <bot token> -admins-channel <ID Admins channel>```
+
+
+This project clone NodeJS Bananium 
