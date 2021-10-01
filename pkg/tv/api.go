@@ -11,7 +11,6 @@ import (
 	"os"
 	"time"
 )
-var OldMessageId int64
 type Movies struct {
 	Result []struct {
 		ID            int    `json:"id"`
